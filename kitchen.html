@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kitchen Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="kitchen">
+
+<h2>Kitchen Orders</h2>
+<div id="orders"></div>
+
+<script>
+async function loadOrders() {
+  try {
+    console.log("Fetching orders...");
+
+    const res = await fetch("http://localhost:3000/orders");
+    const orders = await res.json();
+
+    console.log("ORDERS:", orders);
+
+    const container = document.getElementById("orders");
+
+    if (!container) {
+      console.error("orders div not found");
+      return;
+    }
+
+    if (orders.length === 0) {
+      container.innerHTML = '<div class="empty-message">No orders yet</div>';
+      return;
+    }
+
+    container.innerHTML = "";
+
+    orders.forEach(order => {
+      const div = document.createElement("div");
+      div.className = "order-card";
+
+      let items;
+      try {
+        items = typeof order.items === "string"
+          ? JSON.parse(order.items)
+          : order.items;
+      } catch (e) {
+        console.error("JSON parse error", e);
+        items = [];
+      }
+
+      const statusClass = order.status === "ready"
+        ? "status-ready"
+        : order.status === "served"
+        ? "status-served"
+        : "status-pending";
+
+      div.innerHTML = `
+        <div class="order-label">
+          <strong>Table ${order.table_number}</strong>
+          <span class="status-pill ${statusClass}">${order.status}</span>
+        </div>
+        <p class="items-list">${
+          items.map(i => `${i.name} x${i.quantity}`).join(", ")
+        }</p>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("ERROR:", err);
+  }
+}
+
+loadOrders();
+</script>
+
+</body>
+</html>
