@@ -1,14 +1,6 @@
 
-const menu = [
-  { id: 1, name: "Pizza", price: 200 },
-  { id: 2, name: "Burger", price: 120 },
-  { id: 3, name: "Pasta", price: 150 },
-  { id: 4, name: "samosa", price: 20 },
-  { id: 5, name: "Fries", price: 100 },
-  { id: 6, name: "Diet coke", price: 40 }
-];
-
 let cart = [];
+let menu = [];
 
 // 🔹 Display Menu
 function renderMenu() {
@@ -17,18 +9,24 @@ function renderMenu() {
 
   menu.forEach(item => {
     const div = document.createElement("div");
-    div.className = "item";
+    div.className = "menu-item";
 
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${item.name}</div>
         <div class="item-price">₹${item.price}</div>
       </div>
-      <button onclick="addToCart(${item.id})">Add</button>
+      <button onclick="addToCart(${item.id})">Add to Cart</button>
     `;
 
     menuDiv.appendChild(div);
   });
+}
+
+async function loadMenu() {
+  const res = await fetch("/menu");
+  menu = await res.json();
+  renderMenu();
 }
 
 // 🔹 Add to Cart
@@ -128,5 +126,5 @@ async function placeOrder() {
 }
 
 // Initial load
-renderMenu();
+loadMenu();
 renderCart();

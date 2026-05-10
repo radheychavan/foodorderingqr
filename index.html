@@ -1,21 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Menu</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">QR Order</p>
+        <h2>Menu</h2>
+        <p class="page-copy">Select items from the menu, review your cart, and place your order in one tap.</p>
+      </div>
+      <div class="header-actions">
+        <button class="toggle-mode" id="themeToggle" type="button" aria-label="Toggle dark mode">🌙 Dark Mode</button>
+      </div>
+    </header>
 
-  <h2>Menu</h2>
-  <div id="menu"></div>
+    <section class="hero-slider" aria-label="Featured dishes">
+      <div class="slides" id="sliderSlides">
+        <article class="slide active">
+          <img src="https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1200&q=80" alt="Colorful chef special pasta dish">
+          <div class="slide-copy">
+            <h3>Chef’s Special Pasta</h3>
+            <p>Warm, hand-crafted pasta with seasonal ingredients and bold flavors.</p>
+          </div>
+        </article>
+        <article class="slide">
+          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80" alt="Fresh salad with greens and toppings">
+          <div class="slide-copy">
+            <h3>Fresh Seasonal Salad</h3>
+            <p>Bright, crisp greens with house-made dressing and chef-fresh toppings.</p>
+          </div>
+        </article>
+        <article class="slide">
+          <img src="https://images.unsplash.com/photo-1496412705862-e0088f16f791?auto=format&fit=crop&w=1200&q=80" alt="Plated gourmet burger with fries">
+          <div class="slide-copy">
+            <h3>Signature Burger</h3>
+            <p>Juicy, flame-grilled burger served with hand-cut fries and savory sauce.</p>
+          </div>
+        </article>
+      </div>
+      <div class="slider-actions">
+        <button type="button" class="slider-control prev" aria-label="Previous slide">&#10094;</button>
+        <button type="button" class="slider-control next" aria-label="Next slide">&#10095;</button>
+      </div>
+      <div class="slider-dots" id="sliderDots">
+        <button class="slider-dot active" data-index="0" aria-label="Slide 1"></button>
+        <button class="slider-dot" data-index="1" aria-label="Slide 2"></button>
+        <button class="slider-dot" data-index="2" aria-label="Slide 3"></button>
+      </div>
+    </section>
 
-  <div class="cart-header">
-    <h2>Cart <span class="item-count" id="item-count">0</span></h2>
+    <main class="layout-grid">
+      <section class="menu-panel">
+        <div id="menu"></div>
+      </section>
+
+      <aside class="cart-panel">
+        <div class="cart-header">
+          <h2>Cart <span class="item-count" id="item-count">0</span></h2>
+        </div>
+        <div class="cart-items-wrapper">
+          <div id="cart"></div>
+        </div>
+        <div id="total"></div>
+        <button class="place-order-button" onclick="placeOrder()">Place Order</button>
+      </aside>
+    </main>
   </div>
-  <div id="cart"></div>
-  <h3 id="total"></h3>
-  <button onclick="placeOrder()">Place Order</button>
 
 <script src="cart.js"></script>
+<script>
+  const slides = document.querySelectorAll('.hero-slider .slide');
+  const dots = document.querySelectorAll('.slider-dot');
+  const prevButton = document.querySelector('.slider-control.prev');
+  const nextButton = document.querySelector('.slider-control.next');
+  let currentSlide = 0;
+  let sliderTimer;
+
+  const showSlide = index => {
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle('active', idx === index);
+    });
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === index);
+    });
+    currentSlide = index;
+  };
+
+  const goNext = () => showSlide((currentSlide + 1) % slides.length);
+  const goPrev = () => showSlide((currentSlide - 1 + slides.length) % slides.length);
+  const resetSlider = () => {
+    clearInterval(sliderTimer);
+    sliderTimer = setInterval(goNext, 7000);
+  };
+
+  nextButton.addEventListener('click', () => { goNext(); resetSlider(); });
+  prevButton.addEventListener('click', () => { goPrev(); resetSlider(); });
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      showSlide(Number(dot.dataset.index));
+      resetSlider();
+    });
+  });
+
+  sliderTimer = setInterval(goNext, 7000);
+
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('theme') || 'light';
+
+  const applyTheme = theme => {
+    document.body.classList.toggle('dark', theme === 'dark');
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('theme', theme);
+  };
+
+  themeToggle.addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+    applyTheme(nextTheme);
+  });
+
+  applyTheme(savedTheme);
+  
+</script>
 </body>
 </html>

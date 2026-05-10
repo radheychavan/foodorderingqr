@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kitchen Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="kitchen">
+  <div class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Kitchen Dashboard</p>
+        <h2>Kitchen Orders</h2>
+      </div>
+      <div class="refresh-hint">Auto-refreshing every 10s</div>
+    </header>
 
-<h2>Kitchen Orders</h2>
-<div id="orders"></div>
+    <div id="orders" class="orders-grid"></div>
 
 <script>
+  
 async function loadOrders() {
   try {
     console.log("Fetching orders...");
@@ -70,7 +80,6 @@ async function loadOrders() {
     console.error("ERROR:", err);
   }
 }
-
 loadOrders();
 </script>
 
