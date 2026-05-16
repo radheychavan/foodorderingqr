@@ -13,74 +13,112 @@
         <p class="eyebrow">Kitchen Dashboard</p>
         <h2>Kitchen Orders</h2>
       </div>
-      <div class="refresh-hint">Auto-refreshing every 10s</div>
     </header>
 
     <div id="orders" class="orders-grid"></div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
-  
-async function loadOrders() {
-  try {
-    console.log("Fetching orders...");
+const socket = io();
+socket.on("newOrder", () => {
 
-    const res = await fetch("http://localhost:3000/orders");
+  console.log("New order received");
+
+  loadOrders();
+
+});
+async function loadOrders() {
+
+  try {
+
+    const res = await fetch("/orders");
+
     const orders = await res.json();
 
-    console.log("ORDERS:", orders);
+    console.log("Orders:", orders);
 
     const container = document.getElementById("orders");
 
-    if (!container) {
-      console.error("orders div not found");
-      return;
-    }
-
-    if (orders.length === 0) {
-      container.innerHTML = '<div class="empty-message">No orders yet</div>';
-      return;
-    }
-
     container.innerHTML = "";
 
+    if (orders.length === 0) {
+
+      container.innerHTML = "<h3>No orders yet</h3>";
+
+      return;
+
+    }
+
     orders.forEach(order => {
+
       const div = document.createElement("div");
+
       div.className = "order-card";
 
-      let items;
+      let items = [];
+
       try {
+
         items = typeof order.items === "string"
           ? JSON.parse(order.items)
           : order.items;
-      } catch (e) {
-        console.error("JSON parse error", e);
-        items = [];
+
+      } catch (err) {
+
+        console.error("Item parse error:", err);
+
       }
 
-      const statusClass = order.status === "ready"
-        ? "status-ready"
-        : order.status === "served"
-        ? "status-served"
-        : "status-pending";
-
       div.innerHTML = `
-        <div class="order-label">
-          <strong>Table ${order.table_number}</strong>
-          <span class="status-pill ${statusClass}">${order.status}</span>
-        </div>
-        <p class="items-list">${
-          items.map(i => `${i.name} x${i.quantity}`).join(", ")
-        }</p>
+        <h3>Table ${order.table_number}</h3>
+
+        <p>Status: ${order.status}</p>
+
+        <p>
+          ${items.map(i =>
+            `${i.name} x${i.quantity}`
+          ).join(", ")}
+        </p>
+
+        <button onclick="completeOrder(${order.id})">
+          Complete Order
+        </button>
+
+        <hr>
       `;
 
       container.appendChild(div);
+
     });
 
   } catch (err) {
-    console.error("ERROR:", err);
+
+    console.error("Load order error:", err);
+
   }
+
 }
+
+async function completeOrder(id) {
+
+  try {
+
+    await fetch(`/orders/${id}`, {
+      method: "DELETE"
+    });
+
+    loadOrders();
+
+  } catch (err) {
+
+    console.error("Delete error:", err);
+
+  }
+
+}
+
 loadOrders();
+
 </script>
 
 </body>

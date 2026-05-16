@@ -4,7 +4,6 @@ const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
-
 const app = express();
 
 // Middleware
@@ -121,6 +120,32 @@ app.delete("/menu/:id", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "DB error" });
   }
+});
+app.delete("/orders/:id", async (req, res) => {
+
+  const { id } = req.params;
+
+  try {
+
+    await pool.query(
+      "DELETE FROM orders WHERE id = $1",
+      [id]
+    );
+
+    res.json({
+      message: "Order deleted"
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: "Database error"
+    });
+
+  }
+
 });
 // 🚀 Start Server
 const PORT = 3000;

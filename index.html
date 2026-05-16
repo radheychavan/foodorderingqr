@@ -67,13 +67,22 @@
           <div id="cart"></div>
         </div>
         <div id="total"></div>
-        <button class="place-order-button" onclick="placeOrder()">Place Order</button>
+      <button id="orderBtn" onclick="placeOrder()">
+  Place Order
+</button>
       </aside>
     </main>
   </div>
 
 <script src="cart.js"></script>
 <script>
+  const params = new URLSearchParams(window.location.search);
+
+const tableNumber = params.get("table") || 1;
+
+console.log("Current Table:", tableNumber);
+document.getElementById("tableDisplay")
+.innerText = `Table ${tableNumber}`;
   const slides = document.querySelectorAll('.hero-slider .slide');
   const dots = document.querySelectorAll('.slider-dot');
   const prevButton = document.querySelector('.slider-control.prev');
