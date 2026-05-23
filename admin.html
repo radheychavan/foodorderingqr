@@ -17,10 +17,17 @@
 <div id="menu"></div>
 
 <script>
+  const token = localStorage.getItem("token");
+
+if (!token) {
+
+  window.location.href = "/login.html";
+
+}
 async function loadMenu() {
   const res = await fetch("http://localhost:3000/menu");
   const items = await res.json();
-
+const token = localStorage.getItem("token");
   const container = document.getElementById("menu");
   container.innerHTML = "";
 
@@ -47,7 +54,8 @@ async function addItem() {
   await fetch("http://localhost:3000/menu", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({
       name,

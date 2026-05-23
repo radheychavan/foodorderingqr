@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -16,10 +17,43 @@ const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "qr_order",   // 👈 MUST match pgAdmin
-  password: "radhey123",
-  port: 5433,
+password: process.env.DB_PASSWORD,
+ port: 5433,
 });
+function verifyToken(req, res, next) {
 
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+
+    return res.status(401).json({
+      error: "Access denied"
+    });
+
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+
+    const verified = jwt.verify(
+      token,
+      "secretkey"
+    );
+
+    req.user = verified;
+
+    next();
+
+  } catch (err) {
+
+    res.status(403).json({
+      error: "Invalid token"
+    });
+
+  }
+
+}
 // 🔹 Test Route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -147,6 +181,82 @@ app.delete("/orders/:id", async (req, res) => {
   }
 
 });
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const hashedPassword =
+bcrypt.hashSync("admin123", 10);
+
+app.post("/login", async (req, res) => {
+
+  const { email, password } = req.body;
+
+  try {
+
+    const result = await pool.query(
+
+      "SELECT * FROM admins WHERE email = $1",
+
+      [email]
+
+    );
+console.log(result.rows);
+    if (result.rows.length === 0) {
+
+      return res.status(401).json({
+        error: "Invalid email"
+      });
+
+    }
+
+    const admin = result.rows[0];
+console.log(admin);
+    const validPassword =
+      bcrypt.compareSync(
+        password,
+        admin.password
+        
+      );
+console.log("Password valid:", validPassword);
+    if (!validPassword) {
+
+      return res.status(401).json({
+        error: "Invalid password"
+      });
+
+    }
+
+    const token = jwt.sign(
+
+      {
+        id: admin.id
+      },
+
+      "secretkey",
+
+      {
+        expiresIn: "1d"
+      }
+
+    );
+
+    res.json({
+      token
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
+  }
+
+});
+const hash = bcrypt.hashSync("admin123", 10);
+
+console.log(hash);
 // 🚀 Start Server
 const PORT = 3000;
 const server = http.createServer(app);
@@ -162,4 +272,37 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+app.put("/orders/:id", async (req, res) => {
+
+  const { id } = req.params;
+
+  const { status } = req.body;
+
+  try {
+
+    await pool.query(
+
+      "UPDATE orders SET status = $1 WHERE id = $2",
+
+      [status, id]
+
+    );
+
+    io.emit("newOrder");
+
+    res.json({
+      message: "Status updated"
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      error: "DB error"
+    });
+
+  }
+
 });

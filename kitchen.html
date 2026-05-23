@@ -18,8 +18,11 @@
     <div id="orders" class="orders-grid"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+
 <script>
+
 const socket = io();
+
 socket.on("newOrder", () => {
 
   console.log("New order received");
@@ -27,6 +30,33 @@ socket.on("newOrder", () => {
   loadOrders();
 
 });
+
+async function updateStatus(id, status) {
+
+  try {
+
+    await fetch(`/orders/${id}`, {
+
+      method: "PUT",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        status
+      })
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
 async function loadOrders() {
 
   try {
@@ -37,21 +67,28 @@ async function loadOrders() {
 
     console.log("Orders:", orders);
 
-    const container = document.getElementById("orders");
+    const container =
+      document.getElementById("orders");
 
     container.innerHTML = "";
 
-    if (orders.length === 0) {
+    const activeOrders = orders.filter(order =>
+      order.status !== "completed"
+    );
 
-      container.innerHTML = "<h3>No orders yet</h3>";
+    if (activeOrders.length === 0) {
+
+      container.innerHTML =
+        "<h3>No active orders</h3>";
 
       return;
 
     }
 
-    orders.forEach(order => {
+    activeOrders.forEach(order => {
 
-      const div = document.createElement("div");
+      const div =
+        document.createElement("div");
 
       div.className = "order-card";
 
@@ -59,20 +96,30 @@ async function loadOrders() {
 
       try {
 
-        items = typeof order.items === "string"
+        items =
+          typeof order.items === "string"
           ? JSON.parse(order.items)
           : order.items;
 
       } catch (err) {
 
-        console.error("Item parse error:", err);
+        console.error(
+          "Item parse error:",
+          err
+        );
 
       }
 
       div.innerHTML = `
-        <h3>Table ${order.table_number}</h3>
 
-        <p>Status: ${order.status}</p>
+        <h3>
+          Table ${order.table_number}
+        </h3>
+
+        <p>
+          Status:
+          <strong>${order.status}</strong>
+        </p>
 
         <p>
           ${items.map(i =>
@@ -80,11 +127,20 @@ async function loadOrders() {
           ).join(", ")}
         </p>
 
-        <button onclick="completeOrder(${order.id})">
-          Complete Order
+        <button onclick="updateStatus(${order.id}, 'preparing')">
+          Preparing
+        </button>
+
+        <button onclick="updateStatus(${order.id}, 'ready')">
+          Ready
+        </button>
+
+        <button onclick="updateStatus(${order.id}, 'completed')">
+          Complete
         </button>
 
         <hr>
+
       `;
 
       container.appendChild(div);
@@ -93,25 +149,10 @@ async function loadOrders() {
 
   } catch (err) {
 
-    console.error("Load order error:", err);
-
-  }
-
-}
-
-async function completeOrder(id) {
-
-  try {
-
-    await fetch(`/orders/${id}`, {
-      method: "DELETE"
-    });
-
-    loadOrders();
-
-  } catch (err) {
-
-    console.error("Delete error:", err);
+    console.error(
+      "Load order error:",
+      err
+    );
 
   }
 
